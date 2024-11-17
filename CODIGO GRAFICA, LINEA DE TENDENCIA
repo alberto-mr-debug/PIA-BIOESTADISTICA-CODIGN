@@ -1,0 +1,58 @@
+import openpyxl
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Cargar el archivo Excel
+archivo_excel = 'LISTA NOMINAL.xlsx'
+wb = openpyxl.load_workbook(archivo_excel)
+
+# Seleccionar la hoja que deseas modificar
+hoja = wb['BINOMIO VHCVIH']
+
+# Leer los datos de la columna "Resultado de Carga Viral con ALT"
+resultados_carga_viral = []
+for fila in hoja.iter_rows(min_row=2, min_col=2, max_col=2, values_only=True):  # Ajusta min_col si es necesario
+    valor = fila[0]
+    try:
+        resultado = float(valor)
+        resultados_carga_viral.append(resultado)
+    except (ValueError, TypeError):
+        continue
+
+# Si no hay datos numéricos, mostrar un mensaje
+if not resultados_carga_viral:
+    print("No se encontraron datos numéricos en la columna.")
+else:
+    # Crear un array de índices para las muestras
+    indices = np.arange(len(resultados_carga_viral))
+
+    # Calcular la línea de tendencia (ajuste lineal)
+    coeficientes = np.polyfit(indices, resultados_carga_viral, 1)  # Ajuste lineal
+    tendencia = np.polyval(coeficientes, indices)
+
+    # Crear la gráfica
+    plt.figure(figsize=(10, 6))
+    plt.plot(resultados_carga_viral, marker='o', linestyle='-', color='b', label='Datos originales')
+    plt.plot(indices, tendencia, linestyle='--', color='r', label='Línea de tendencia')
+    plt.title('Gráfica de Resultado de Carga Viral con ALT')
+    plt.xlabel('Índice de Muestra')
+    plt.ylabel('Resultado de Carga Viral con ALT')
+    plt.legend()
+    plt.grid(True)
+
+    # Guardar la gráfica como una imagen
+    grafico_path = 'grafico_carga_viral_con_tendencia.png'
+    plt.savefig(grafico_path)
+
+    # Insertar la imagen en el archivo Excel
+    from openpyxl.drawing.image import Image
+
+    img = Image(grafico_path)
+
+    # Ubicar la imagen en la hoja de Excel (por ejemplo, en la celda E2)
+    hoja.add_image(img, 'E2')
+
+    # Guardar el archivo Excel con la imagen añadida
+    wb.save('LISTA NOMINAL_con_grafico_con_tendencia.xlsx')
+
+    print("Gráfico con línea de tendencia añadido con éxito.")
