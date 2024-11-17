@@ -1,0 +1,54 @@
+##grafico de varga viral con alt
+import openpyxl
+import matplotlib.pyplot as plt
+
+# Cargar el archivo Excel
+archivo_excel = 'LISTA NOMINAL.xlsx'
+wb = openpyxl.load_workbook(archivo_excel)
+
+# Seleccionar la hoja que deseas modificar
+hoja = wb['BINOMIO VHCVIH']
+
+# Leer los datos de la columna "Resultado de Carga Viral con ALT"
+# Vamos a suponer que la columna está en la columna 'B' (ajusta el índice de columna según sea necesario)
+# Además, vamos a omitir el encabezado (fila 1).
+
+resultados_carga_viral = []
+for fila in hoja.iter_rows(min_row=2, min_col=2, max_col=2, values_only=True):  # Ajusta min_col si es necesario
+    valor = fila[0]
+    # Filtrar solo los valores numéricos
+    try:
+        resultado = float(valor)
+        resultados_carga_viral.append(resultado)
+    except (ValueError, TypeError):
+        # Si no es un número válido, lo ignoramos
+        continue
+
+# Si no hay datos numéricos, mostrar un mensaje
+if not resultados_carga_viral:
+    print("No se encontraron datos numéricos en la columna.")
+else:
+    # Crear la gráfica
+    plt.figure(figsize=(10, 6))
+    plt.plot(resultados_carga_viral, marker='o', linestyle='-', color='b')  # Cambia el tipo de gráfico según lo necesites
+    plt.title('Gráfica de Resultado de Carga Viral con ALT')
+    plt.xlabel('Índice de Muestra')
+    plt.ylabel('Resultado de Carga Viral con ALT')
+    plt.grid(True)
+
+    # Guardar la gráfica como una imagen
+    grafico_path = 'grafico_carga_viral.png'
+    plt.savefig(grafico_path)
+
+    # Insertar la imagen en el archivo Excel
+    from openpyxl.drawing.image import Image
+
+    img = Image(grafico_path)
+
+    # Ubicar la imagen en la hoja de Excel (por ejemplo, en la celda E2)
+    hoja.add_image(img, 'E2')
+
+    # Guardar el archivo Excel con la imagen añadida
+    wb.save('LISTA NOMINAL_con_grafico.xlsx')
+
+    print("Gráfico añadido con éxito.")
